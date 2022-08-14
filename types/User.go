@@ -1,9 +1,9 @@
 package types
 
 type User struct {
-	UserName  string `json:"user_name"`
-	Password  string `json:"password"`
-	Uid       int    `json:"uid"`
-	Email     string `json:"email"`
-	UserGroup string `json:"user_group"`
+	Uid       int64  `json:"uid"`
+	UserName  string `json:"user_name,omitempty"`
+	Password  string `json:"password,omitempty"`
+	Email     string `json:"email,omitempty"`
+	UserGroup string `json:"user_group,omitempty"`
 }

@@ -1,9 +1,9 @@
 package database
 
 import (
+	"github.com/MysGal/Mon3tr/utils"
 	"github.com/blevesearch/bleve/v2"
 	gsebleve "github.com/leopku/bleve-gse-tokenizer/v2"
-	"log"
 )
 
 var GlobalIndex bleve.Index
@@ -28,7 +28,7 @@ func InitIndex() {
 
 		index, err = bleve.New("./data/database/index", mapping)
 		if err != nil {
-			log.Fatal(err)
+			utils.GlobalLogger.Fatal(err)
 		}
 	}
 
@@ -37,13 +37,7 @@ func InitIndex() {
 }
 
 //func Test() {
-//	article := types.Article{1, "test", "testcontent", types.GalGame{1, "命123sa运asd1u29之casca夜", []string{"testauthor1", "testauthor2"}, []string{"testpublisher1", "testpublisher2"}, []string{"tag1", "tag2"}}}
-//
-//	//message := "工信处女干事每月经过下属科室都要亲口交代24口交换机等技术性器件的安装工"
-//	if err := GlobalIndex.Index(strconv.Itoa(article.Aid), article); err != nil {
-//		panic(err)
-//	}
-//	query := "+related_galgame.name:命运之夜"
+//	query := "related_galgame.name:testgal"
 //	req := bleve.NewSearchRequest(bleve.NewQueryStringQuery(query))
 //	req.Highlight = bleve.NewHighlight()
 //	res, err := GlobalIndex.Search(req)

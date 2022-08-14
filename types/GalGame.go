@@ -1,7 +1,8 @@
 package types
 
 type GalGame struct {
-	Gid       int      `json:"gid"` // gid即Game ID,对应每一个Gal 与数据库上自增主键相对应
+	// TODO: 应补充
+	//Gid       int      `json:"gid"` // gid即Game ID,对应每一个Gal 与数据库上自增主键相对应
 	Name      string   `json:"name"`
 	Author    []string `json:"author"`
 	Publisher []string `json:"publisher"`
