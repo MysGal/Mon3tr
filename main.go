@@ -28,6 +28,10 @@ func main() {
 	}()
 
 	app.Post("/article/create", handlers.ArticleCreateHandler)
+	app.Post("/article/:aid/update", handlers.ArticleUpdateHandler)
+	app.Get("/article/:aid/detail", handlers.ArticleQueryHandler)
+	app.Post("/article/:aid/comment/create", handlers.ArticleContentCreateHandler)
+	app.Get("/article/:aid/comment/fetch/:startAcid", handlers.ArticleContentQueryHandler)
 
 	//app.ListenTLS(":8888", "./data/tls/cert.pem", "./data/tls/key")
 	app.Listen(":8888")
