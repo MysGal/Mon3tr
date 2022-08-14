@@ -33,8 +33,8 @@ func main() {
 	app.Post("/article/:aid/comment/create", handlers.ArticleContentCreateHandler)
 	app.Get("/article/:aid/comment/fetch/:startAcid", handlers.ArticleContentQueryHandler)
 
-	app.ListenTLS(":443", "./data/tls/cert.pem", "./data/tls/key")
-	//app.Listen(":443")
+	//app.ListenTLS(":2333", "./data/tls/cert.pem", "./data/tls/key")
+	app.Listen(":2333")
 
 	utils.GlobalLogger.Info("Running cleanup progress")
 	// Clean up
