@@ -6,10 +6,10 @@ import (
 	gsebleve "github.com/leopku/bleve-gse-tokenizer/v2"
 )
 
-var GlobalIndex bleve.Index
+var GlobalTopicIndex, GlobalDiscussionIndex bleve.Index
 
 func InitIndex() {
-	index, err := bleve.Open("./data/database/index")
+	topicIndex, err := bleve.Open("./data/database/index/topic")
 	if err != nil {
 		mapping := bleve.NewIndexMapping()
 		if err := mapping.AddCustomTokenizer("gse", map[string]interface{}{
@@ -26,18 +26,42 @@ func InitIndex() {
 		}
 		mapping.DefaultAnalyzer = "gse"
 
-		index, err = bleve.New("./data/database/index", mapping)
+		topicIndex, err = bleve.New("./data/database/index/topic", mapping)
 		if err != nil {
 			utils.GlobalLogger.Fatal(err)
 		}
 	}
 
-	GlobalIndex = index
+	GlobalTopicIndex = topicIndex
 
+	discussionIndex, err := bleve.Open("./data/database/index/discussion")
+	if err != nil {
+		mapping := bleve.NewIndexMapping()
+		if err := mapping.AddCustomTokenizer("gse", map[string]interface{}{
+			"type":       gsebleve.Name,
+			"user_dicts": "./data/tokenizer/dict.txt",
+		}); err != nil {
+			panic(err)
+		}
+		if err := mapping.AddCustomAnalyzer("gse", map[string]interface{}{
+			"type":      "gse",
+			"tokenizer": "gse",
+		}); err != nil {
+			panic(err)
+		}
+		mapping.DefaultAnalyzer = "gse"
+
+		discussionIndex, err = bleve.New("./data/database/index/discussion", mapping)
+		if err != nil {
+			utils.GlobalLogger.Fatal(err)
+		}
+	}
+
+	GlobalDiscussionIndex = discussionIndex
 }
 
 //func Test() {
-//	query := "related_galgame.name:testgal"
+//	query := "testgal"
 //	req := bleve.NewSearchRequest(bleve.NewQueryStringQuery(query))
 //	req.Highlight = bleve.NewHighlight()
 //	res, err := GlobalIndex.Search(req)

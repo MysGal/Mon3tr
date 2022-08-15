@@ -1,19 +1,39 @@
 package database
 
 import (
-	"database/sql"
 	"github.com/MysGal/Mon3tr/utils"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/bwmarrin/snowflake"
+	"github.com/xujiajun/nutsdb"
 )
 
-var GlobalDatabase *sql.DB
+var GlobalDatabase *nutsdb.DB
+
+var DiscussionNode, UserNode *snowflake.Node
 
 func InitDatabase() {
-	database, err := sql.Open("sqlite3", "./data/database/database.db?cache=shared&mode=memory")
-
+	// 数据库初始化
+	database, err := nutsdb.Open(
+		nutsdb.DefaultOptions,
+		nutsdb.WithDir("./data/database/nuts"),
+	)
 	if err != nil {
-		utils.GlobalLogger.Fatal(err)
+		utils.GlobalLogger.Panic(err)
 	}
-	database.SetMaxOpenConns(1)
 	GlobalDatabase = database
+
+	// ID生成器初始化
+	// 用户ID生成器
+	userNode, err := snowflake.NewNode(1)
+	if err != nil {
+		utils.GlobalLogger.Panic(err)
+	}
+	UserNode = userNode
+
+	// 帖子ID生成器
+	discussionNode, err := snowflake.NewNode(2)
+	if err != nil {
+		utils.GlobalLogger.Panic(err)
+	}
+	DiscussionNode = discussionNode
+
 }
