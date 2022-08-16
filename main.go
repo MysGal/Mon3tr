@@ -37,7 +37,10 @@ func main() {
 	app.Post("/discussion/create", handlers.DiscussionCreateHandler)
 	// 楼处理器
 	app.Post("/discussion/:did/comment", handlers.FloorCreateHandler)
+	app.Get("/discussion/:did/detail", handlers.DiscussionDetailQueryHandler)
 	app.Get("/discussion/:did/:start/:count", handlers.FloorQueryHandler)
+	// 搜索处理器
+	app.Get("/search/:type/:keyword/:from", handlers.SearchHandler)
 
 	app.Listen(":2333")
 
@@ -46,6 +49,7 @@ func main() {
 	defer database.GlobalTopicIndex.Close()
 	defer database.GlobalDiscussionIndex.Close()
 	defer database.GlobalDatabase.Close()
+	utils.GlobalLogger.Info("Cleanup progress finished")
 }
 
 //func Test() {

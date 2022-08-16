@@ -11,6 +11,7 @@ func FloorCreateHandler(ctx *fiber.Ctx) error {
 	did := ctx.Params("did")
 	if did == "" {
 		SendMessage(ctx, 403, "broken path")
+		return nil
 	}
 	rawBody := ctx.Body()
 	var floor types.Floor
@@ -65,6 +66,8 @@ func FloorQueryHandler(ctx *fiber.Ctx) error {
 
 	if count > 10 {
 		count = 10
+	} else if count <= 0 {
+		count = 1
 	}
 
 	floors, err := database.FloorQuery(did, start, count)

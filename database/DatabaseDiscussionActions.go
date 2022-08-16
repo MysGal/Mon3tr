@@ -58,7 +58,8 @@ func DiscussionCreate(discussion types.Discussion) (string, error) {
 		return "", err
 	}
 
-	err = GlobalDiscussionIndex.Index(discussion.Topic, discussion)
+	// 用Did作为key存入索引，查询的时候直接得到did，检测key分隔符后为0即为主题
+	err = GlobalDiscussionIndex.Index(did+"_0", discussion)
 	if err != nil {
 		return "", err
 	}
@@ -101,7 +102,7 @@ func DiscussionQueryByDid(did string) (types.Discussion, error) {
 	err := GlobalDatabase.View(
 		func(tx *nutsdb.Tx) error {
 			items, err := tx.Get(didBucket, []byte(did))
-			if errors.Is(err, nutsdb.ErrBucket) || errors.Is(err, nutsdb.ErrBucketNotFound) {
+			if errors.Is(err, nutsdb.ErrBucket) || errors.Is(err, nutsdb.ErrBucketNotFound) || errors.Is(err, nutsdb.ErrKeyNotFound) {
 				return nil
 			}
 			if err != nil {
@@ -115,9 +116,6 @@ func DiscussionQueryByDid(did string) (types.Discussion, error) {
 		})
 	if err != nil {
 		return types.Discussion{}, err
-	}
-	if discussion.Did == "" {
-		return types.Discussion{}, nil
 	}
 
 	return discussion, nil

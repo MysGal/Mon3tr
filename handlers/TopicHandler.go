@@ -89,13 +89,9 @@ func TopicQueryAllHandler(ctx *fiber.Ctx) error {
 
 func TopicDiscussionQueryHandler(ctx *fiber.Ctx) error {
 	topic := ctx.Params("topic")
-	if topic == "" {
-		SendMessage(ctx, 403, "broken path")
-		return nil
-	}
 
 	discussionType := ctx.Params("type")
-	if discussionType == "" {
+	if discussionType == ":type" || topic == ":start" {
 		SendMessage(ctx, 403, "broken path")
 		return nil
 	}
