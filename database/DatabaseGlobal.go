@@ -12,8 +12,16 @@ var DiscussionNode, UserNode *snowflake.Node
 
 func InitDatabase() {
 	// 数据库初始化
+	databaseOptions := nutsdb.Options{
+		EntryIdxMode:         nutsdb.HintKeyValAndRAMIdxMode,
+		SegmentSize:          8 * 1024 * 1024,
+		NodeNum:              1,
+		RWMode:               nutsdb.FileIO,
+		SyncEnable:           true,
+		StartFileLoadingMode: nutsdb.MMap,
+	}
 	database, err := nutsdb.Open(
-		nutsdb.DefaultOptions,
+		databaseOptions,
 		nutsdb.WithDir("./data/database/nuts"),
 	)
 	if err != nil {

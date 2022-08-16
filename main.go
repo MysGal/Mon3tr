@@ -5,20 +5,26 @@ import (
 	"github.com/MysGal/Mon3tr/handlers"
 	"github.com/MysGal/Mon3tr/utils"
 	"github.com/gofiber/fiber/v2"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 )
 
 func main() {
 
+	utils.InitLogger()
+	utils.InitTokenier()
 	database.InitIndex()
 	database.InitDatabase()
 	handlers.InitSessionHandler()
-	utils.InitLogger()
 
 	//DiscussionQuery("测试主题", 0, 1)
+	//log.Println(http.ListenAndServe(":6060", nil))
 	//return
 	app := fiber.New()
+	app.Listen(":2333")
+	//return
+	//app := fiber.New()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

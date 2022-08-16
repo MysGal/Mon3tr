@@ -11,6 +11,7 @@ require (
 
 require (
 	github.com/RoaringBitmap/roaring v0.9.4 // indirect
+	github.com/adamzy/cedar-go v0.0.0-20170805034717-80a9c64b256d // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/blevesearch/bleve_index_api v1.0.3 // indirect
@@ -31,6 +32,7 @@ require (
 	github.com/go-ego/gse v0.70.2 // indirect
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/golang/snappy v0.0.2 // indirect
+	github.com/huichen/sego v0.0.0-20210824061530-c87651ea5c76 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
