@@ -21,6 +21,17 @@ func FloorCreateHandler(ctx *fiber.Ctx) error {
 	}
 	// TODO: 用户身份校验
 
+	// 校验Did是否存在
+	discussion, err := database.DiscussionQueryByDid(did)
+	if err != nil {
+		SendMessage(ctx, 500, "discussion query error")
+		return nil
+	}
+	if discussion.Did != did {
+		SendMessage(ctx, 403, "discussion not found")
+		return nil
+	}
+
 	err = database.FloorCreate(did, &floor)
 	if err != nil {
 		SendMessage(ctx, 500, "database error")

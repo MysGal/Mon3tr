@@ -133,7 +133,7 @@ func TopicDiscussionQueryHandler(ctx *fiber.Ctx) error {
 	}
 
 	// 查询数据库
-	discussions, err := database.DiscussionQuery(topic, prefix, start, count)
+	discussions, err := database.DiscussionQueryByTopic(topic, prefix, start, count)
 	if err != nil {
 		SendMessage(ctx, 500, "database error")
 		return nil

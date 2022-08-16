@@ -11,22 +11,6 @@ var floorBucket = "floor"
 
 func FloorCreate(did string, floor *types.Floor) error {
 
-	// 设定楼数，似乎没啥必要
-	//var floorNumber int64
-	//err := GlobalDatabase.View(
-	//	func(tx *nutsdb.Tx) error {
-	//		size, err := tx.LSize(floorBucket, []byte(did))
-	//		if err != nil {
-	//			return err
-	//		}
-	//		floorNumber = int64(size + 1)
-	//		return nil
-	//	})
-	//if err != nil {
-	//	return "", err
-	//}
-	//floor.Floor = floorNumber
-
 	floorJson, err := jsoniter.Marshal(floor)
 	if err != nil {
 		return err

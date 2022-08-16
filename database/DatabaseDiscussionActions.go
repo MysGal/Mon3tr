@@ -8,6 +8,7 @@ import (
 )
 
 var discussionBucket = "discussion"
+var didBucket = "did"
 
 // Handler确保Topic、Title、Creator存在，Did在此生成
 // 利用prefix完成release和discussion区分
@@ -44,7 +45,20 @@ func DiscussionCreate(discussion types.Discussion) (string, error) {
 		return "", err
 	}
 
-	err = GlobalDiscussionIndex.Index(did+discussion.Topic, discussion)
+	// 将Discussion相关内容根据Did储存，便于查询
+	err = GlobalDatabase.Update(
+		func(tx *nutsdb.Tx) error {
+			err := tx.Put(didBucket, []byte(did), discussionJson, 0)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+	if err != nil {
+		return "", err
+	}
+
+	err = GlobalDiscussionIndex.Index(discussion.Topic, discussion)
 	if err != nil {
 		return "", err
 	}
@@ -52,7 +66,7 @@ func DiscussionCreate(discussion types.Discussion) (string, error) {
 	return did, nil
 }
 
-func DiscussionQuery(topic string, prefix string, start int, count int) ([]types.Discussion, error) {
+func DiscussionQueryByTopic(topic string, prefix string, start int, count int) ([]types.Discussion, error) {
 	var discussions []types.Discussion
 	err := GlobalDatabase.View(
 		func(tx *nutsdb.Tx) error {
@@ -80,4 +94,32 @@ func DiscussionQuery(topic string, prefix string, start int, count int) ([]types
 		discussions = []types.Discussion{}
 	}
 	return discussions, nil
+}
+
+func DiscussionQueryByDid(did string) (types.Discussion, error) {
+	var discussion types.Discussion
+	err := GlobalDatabase.View(
+		func(tx *nutsdb.Tx) error {
+			items, err := tx.Get(didBucket, []byte(did))
+			if errors.Is(err, nutsdb.ErrBucket) || errors.Is(err, nutsdb.ErrBucketNotFound) {
+				return nil
+			}
+			if err != nil {
+				return err
+			}
+			err = jsoniter.Unmarshal(items.Value, &discussion)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+	if err != nil {
+		return types.Discussion{}, err
+	}
+	if discussion.Did == "" {
+		return types.Discussion{}, nil
+	}
+
+	return discussion, nil
+
 }
