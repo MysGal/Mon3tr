@@ -35,7 +35,10 @@ func TopicCreate(topic types.Topic) error {
 	}
 
 	// 加入索引
-	err = GlobalTopicIndex.Index(topic.Topic, topic)
+	err = GlobalIndex.Index("topic_"+topic.Topic, types.Index{
+		Type: "topic",
+		Data: topic,
+	})
 	if err != nil {
 		return err
 	}
@@ -60,7 +63,10 @@ func TopicUpdate(topic types.Topic) error {
 		return err
 	}
 	// 重新索引
-	err = GlobalTopicIndex.Index(topic.Topic, topic)
+	err = GlobalIndex.Index("topic_"+topic.Topic, types.Index{
+		Type: "topic",
+		Data: topic,
+	})
 	if err != nil {
 		return err
 	}

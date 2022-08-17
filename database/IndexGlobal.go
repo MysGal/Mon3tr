@@ -6,48 +6,33 @@ import (
 	gse "github.com/vcaesar/gse-bleve"
 )
 
-var GlobalTopicIndex, GlobalDiscussionIndex bleve.Index
+/*
+全都以Index结构入索引
+*/
+
+var (
+	GlobalIndex bleve.Index
+)
 
 func InitIndex() {
 
-	topicIndex, err := bleve.Open("./data/database/index/topic")
-	if err != nil {
-		opt := gse.Option{
-			Index: "./data/database/index/topic",
-			Dicts: "./data/tokenizer/dict.small.txt",
-			// Dicts: "embed, zh",
-			Stop: "",
-			Opt:  "search-hmm",
-			Trim: "trim",
-		}
-
-		topicIndex, err := gse.New(opt)
-		if err != nil {
-			utils.GlobalLogger.Panic(err)
-		}
-		GlobalTopicIndex = topicIndex
-	} else {
-		GlobalTopicIndex = topicIndex
-	}
-
-	discussionIndex, err := bleve.Open("./data/database/index/discussion")
+	index, err := bleve.Open("./data/database/index/discussion")
 	if err != nil {
 		opt := gse.Option{
 			Index: "./data/database/index/discussion",
 			Dicts: "./data/tokenizer/dict.small.txt",
-			// Dicts: "embed, zh",
-			Stop: "",
-			Opt:  "search-hmm",
-			Trim: "trim",
+			Stop:  "./data/tokenizer/stop.txt",
+			Opt:   "search-hmm",
+			Trim:  "trim",
 		}
 
-		discussionIndex, err := gse.New(opt)
+		index, err := gse.New(opt)
 		if err != nil {
 			utils.GlobalLogger.Panic(err)
 		}
-		GlobalDiscussionIndex = discussionIndex
+		GlobalIndex = index
 	} else {
-		GlobalDiscussionIndex = discussionIndex
+		GlobalIndex = index
 	}
 }
 

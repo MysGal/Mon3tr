@@ -43,6 +43,36 @@ func SearchHandler(ctx *fiber.Ctx) error {
 		return nil
 	}
 
+	var returnData returnStruct
+
+	switch searchType {
+	case "global":
+		// 全局搜索，分主题和帖子分别搜索
+
+		queryTypes := []string{"discussion", "topic"}
+		returnDataQueried, err := queryBySection(queryTypes, keyWord, from)
+		returnData = returnDataQueried
+		if err != nil {
+			SendMessage(ctx, 500, "server error")
+			return nil
+		}
+	default:
+		SendMessage(ctx, 403, "unknow search type")
+		return nil
+	}
+
+	returnBody, err := jsoniter.Marshal(returnData)
+	if err != nil {
+		SendMessage(ctx, 500, "server marshal error")
+		return nil
+	}
+
+	ctx.Send(returnBody)
+
+	return nil
+}
+
+func queryBySection(queryTypes []string, keyWord string, from int) (returnStruct, error) {
 	returnData := returnStruct{
 		Code:    200,
 		Message: "success",
@@ -64,91 +94,67 @@ func SearchHandler(ctx *fiber.Ctx) error {
 		}, 0)},
 	}
 
-	switch searchType {
-	case "global":
-		// 全局搜索，分主题和帖子分别搜索
+	for _, v := range queryTypes {
+		query := keyWord + " +type:" + v
 
-		query := keyWord
-		// 先搜索主题
-		topicReq := bleve.NewSearchRequest(bleve.NewQueryStringQuery(query))
-		topicReq.Size = 10
-		topicReq.From = from
-		topicReq.SortBy([]string{"_score"})
-		topicRes, err := database.GlobalTopicIndex.Search(topicReq)
+		queryReq := bleve.NewSearchRequest(bleve.NewQueryStringQuery(query))
+		queryReq.Size = 10
+		queryReq.From = from
+		// 获取type在进行处理
+		//queryReq.Fields = []string{"type"}
+		queryReq.SortBy([]string{"_score"})
+		queryRes, err := database.GlobalIndex.Search(queryReq)
 		if err != nil {
-			SendMessage(ctx, 500, "index search error")
-			return nil
+			return returnStruct{}, err
 		}
-		if topicRes.Total != 0 {
-			for _, hit := range topicRes.Hits {
-				topic, err := database.TopicQueryDetail(hit.ID)
-				if err != nil {
-					utils.GlobalLogger.Error(err)
-					continue
-				}
-
-				score := hit.Score
-				returnTopic := struct {
-					Topic types.Topic `json:"topic"`
-					Score float64     `json:"score"`
-				}{Topic: topic, Score: score}
-				returnData.Data.Topics = append(returnData.Data.Topics, returnTopic)
-			}
-		}
-		// 再搜索帖子
-		discussionReq := bleve.NewSearchRequest(bleve.NewQueryStringQuery(query))
-		discussionReq.Size = 10
-		discussionReq.From = from
-		discussionReq.SortBy([]string{"_score", "_id"})
-		discussionRes, err := database.GlobalDiscussionIndex.Search(discussionReq)
-		if err != nil {
-			SendMessage(ctx, 500, "index search error")
-			return nil
-		}
-		if discussionRes.Total != 0 {
-			for _, hit := range discussionRes.Hits {
-				discussion, err := database.DiscussionQueryByDid(hit.ID[:19])
-				floorNumber, err := strconv.Atoi(hit.ID[20:])
-				if err != nil {
-					utils.GlobalLogger.Error(err)
-					continue
-				}
-
-				var floor types.Floor
-				if floorNumber != 0 {
-					floors, err := database.FloorQuery(discussion.Did, floorNumber-1, 1)
+		if queryRes.Total != 0 {
+			for _, hit := range queryRes.Hits {
+				switch v {
+				case "topic":
+					// topic_
+					topic, err := database.TopicQueryDetail(hit.ID[6:])
 					if err != nil {
 						utils.GlobalLogger.Error(err)
-						utils.GlobalLogger.Info(floorNumber)
 						continue
 					}
-					floor = floors[0]
-				} else {
-					continue
+					score := hit.Score
+					returnTopic := struct {
+						Topic types.Topic `json:"topic"`
+						Score float64     `json:"score"`
+					}{Topic: topic, Score: score}
+					returnData.Data.Topics = append(returnData.Data.Topics, returnTopic)
+				case "discussion":
+					discussion, err := database.DiscussionQueryByDid(hit.ID[11:30])
+					floorNumber, err := strconv.Atoi(hit.ID[31:])
+					if err != nil {
+						utils.GlobalLogger.Error(err)
+						continue
+					}
+
+					var floor types.Floor
+					if floorNumber != 0 {
+						floors, err := database.FloorQuery(discussion.Did, floorNumber-1, 1)
+						if err != nil {
+							utils.GlobalLogger.Error(err)
+							utils.GlobalLogger.Info(floorNumber)
+							continue
+						}
+						floor = floors[0]
+					} else {
+						continue
+					}
+					// 补充数据
+					discussion.Floor = &floor
+					score := hit.Score
+					returnDiscussion := struct {
+						Discussion types.Discussion `json:"discussion"`
+						Score      float64          `json:"score"`
+					}{Discussion: discussion, Score: score}
+					returnData.Data.Discussions = append(returnData.Data.Discussions, returnDiscussion)
 				}
-				// 补充数据
-				discussion.Floor = &floor
-				score := hit.Score
-				returnDiscussion := struct {
-					Discussion types.Discussion `json:"discussion"`
-					Score      float64          `json:"score"`
-				}{Discussion: discussion, Score: score}
-				returnData.Data.Discussions = append(returnData.Data.Discussions, returnDiscussion)
 			}
 		}
-
-	default:
-		SendMessage(ctx, 403, "unknow search type")
-		return nil
 	}
 
-	returnBody, err := jsoniter.Marshal(returnData)
-	if err != nil {
-		SendMessage(ctx, 500, "server marshal error")
-		return nil
-	}
-
-	ctx.Send(returnBody)
-
-	return nil
+	return returnData, nil
 }

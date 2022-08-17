@@ -45,8 +45,7 @@ func main() {
 
 	utils.GlobalLogger.Info("Running cleanup progress")
 	// Clean up
-	defer database.GlobalTopicIndex.Close()
-	defer database.GlobalDiscussionIndex.Close()
+	defer database.GlobalIndex.Close()
 	defer database.GlobalDatabase.Close()
 	utils.GlobalLogger.Info("Cleanup progress finished")
 }

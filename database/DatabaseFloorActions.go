@@ -42,7 +42,10 @@ func FloorCreate(did string, floor *types.Floor) error {
 		return err
 	}
 
-	err = GlobalDiscussionIndex.Index(did+"_"+strconv.Itoa(currentFloor), floor)
+	err = GlobalIndex.Index("discussion_"+did+"_"+strconv.Itoa(currentFloor), types.Index{
+		Type: "discussion",
+		Data: floor,
+	})
 	if err != nil {
 		return err
 	}

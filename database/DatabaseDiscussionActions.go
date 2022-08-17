@@ -59,7 +59,10 @@ func DiscussionCreate(discussion types.Discussion) (string, error) {
 	}
 
 	// 用Did作为key存入索引，查询的时候直接得到did，检测key分隔符后为0即为主题
-	err = GlobalDiscussionIndex.Index(did+"_0", discussion)
+	err = GlobalIndex.Index("discussion_"+did+"_0", types.Index{
+		Type: "discussion",
+		Data: discussion,
+	})
 	if err != nil {
 		return "", err
 	}
