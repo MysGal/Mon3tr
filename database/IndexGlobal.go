@@ -3,60 +3,52 @@ package database
 import (
 	"github.com/MysGal/Mon3tr/utils"
 	"github.com/blevesearch/bleve/v2"
+	gse "github.com/vcaesar/gse-bleve"
 )
 
 var GlobalTopicIndex, GlobalDiscussionIndex bleve.Index
 
 func InitIndex() {
+
 	topicIndex, err := bleve.Open("./data/database/index/topic")
 	if err != nil {
-		mapping := bleve.NewIndexMapping()
-		if err := mapping.AddCustomTokenizer("sego", map[string]interface{}{
-			"type":     "sego",
-			"dictpath": "./data/tokenizer/dict.txt",
-		}); err != nil {
-			panic(err)
+		opt := gse.Option{
+			Index: "./data/database/index/topic",
+			Dicts: "./data/tokenizer/dict.small.txt",
+			// Dicts: "embed, zh",
+			Stop: "",
+			Opt:  "search-hmm",
+			Trim: "trim",
 		}
-		if err := mapping.AddCustomAnalyzer("sego", map[string]interface{}{
-			"type":      "sego",
-			"tokenizer": "sego",
-		}); err != nil {
-			panic(err)
-		}
-		mapping.DefaultAnalyzer = "sego"
 
-		topicIndex, err = bleve.New("./data/database/index/topic", mapping)
+		topicIndex, err := gse.New(opt)
 		if err != nil {
-			utils.GlobalLogger.Fatal(err)
+			utils.GlobalLogger.Panic(err)
 		}
+		GlobalTopicIndex = topicIndex
+	} else {
+		GlobalTopicIndex = topicIndex
 	}
 
-	GlobalTopicIndex = topicIndex
+	discussionIndex, err := bleve.Open("./data/database/index/discussion")
+	if err != nil {
+		opt := gse.Option{
+			Index: "./data/database/index/discussion",
+			Dicts: "./data/tokenizer/dict.small.txt",
+			// Dicts: "embed, zh",
+			Stop: "",
+			Opt:  "search-hmm",
+			Trim: "trim",
+		}
 
-	//discussionIndex, err := bleve.Open("./data/database/index/discussion")
-	//if err != nil {
-	//	mapping := bleve.NewIndexMapping()
-	//	if err := mapping.AddCustomTokenizer("sego", map[string]interface{}{
-	//		"type":     "sego",
-	//		"dictpath": "./data/tokenizer/dict.txt",
-	//	}); err != nil {
-	//		panic(err)
-	//	}
-	//	if err := mapping.AddCustomAnalyzer("sego", map[string]interface{}{
-	//		"type":      "sego",
-	//		"tokenizer": "sego",
-	//	}); err != nil {
-	//		panic(err)
-	//	}
-	//	mapping.DefaultAnalyzer = "sego"
-	//
-	//	discussionIndex, err = bleve.New("./data/database/index/discussion", mapping)
-	//	if err != nil {
-	//		utils.GlobalLogger.Fatal(err)
-	//	}
-	//}
-
-	//GlobalDiscussionIndex = discussionIndex
+		discussionIndex, err := gse.New(opt)
+		if err != nil {
+			utils.GlobalLogger.Panic(err)
+		}
+		GlobalDiscussionIndex = discussionIndex
+	} else {
+		GlobalDiscussionIndex = discussionIndex
+	}
 }
 
 //func Test() {
