@@ -5,6 +5,7 @@ import (
 	"github.com/MysGal/Mon3tr/handlers"
 	"github.com/MysGal/Mon3tr/utils"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
@@ -40,6 +41,10 @@ func main() {
 	app.Get("/discussion/:did/:start/:count", handlers.FloorQueryHandler)
 	// 搜索处理器
 	app.Get("/search/:type/:keyword/:from", handlers.SearchHandler)
+
+	app.Use(logger.New(logger.Config{
+		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
+	}))
 
 	app.Listen(":2333")
 
