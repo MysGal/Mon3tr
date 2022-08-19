@@ -45,6 +45,7 @@ func TopicCreate(topic types.Topic) error {
 	return nil
 }
 
+// TopicUpdate
 // TODO:考虑和TopicCreate合并
 func TopicUpdate(topic types.Topic) error {
 	topicJson, err := jsoniter.Marshal(topic)
@@ -73,6 +74,7 @@ func TopicUpdate(topic types.Topic) error {
 	return nil
 }
 
+// TopicQueryDetail
 // 查询一个主题的名字、Tags
 func TopicQueryDetail(topic string) (types.Topic, error) {
 	// 根据Topic的Topic来查询，无需其他部分
@@ -96,6 +98,7 @@ func TopicQueryDetail(topic string) (types.Topic, error) {
 	return queriedTopic, nil
 }
 
+// TopicQueryAll
 // 查询所有的主题并返回
 func TopicQueryAll() ([]types.Topic, error) {
 	var queriedTopic []types.Topic

@@ -40,73 +40,26 @@ func main() {
 	app.Get("/discussion/:did/detail", handlers.DiscussionDetailQueryHandler)
 	app.Get("/discussion/:did/:start/:count", handlers.FloorQueryHandler)
 	// 搜索处理器
-	app.Get("/search/:type/:keyword/:from", handlers.SearchHandler)
+	app.Get("/search/:query/:from", handlers.SearchHandler)
 
 	app.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
 	}))
 
-	app.Listen(":2333")
+	err := app.Listen(":2333")
+	if err != nil {
+		utils.GlobalLogger.Fatal(err)
+	}
 
 	utils.GlobalLogger.Info("Running cleanup progress")
 	// Clean up
-	defer database.GlobalIndex.Close()
-	defer database.GlobalDatabase.Close()
+	err = database.GlobalIndex.Close()
+	if err != nil {
+		utils.GlobalLogger.Fatal(err)
+	}
+	err = database.GlobalDatabase.Close()
+	if err != nil {
+		utils.GlobalLogger.Fatal(err)
+	}
 	utils.GlobalLogger.Info("Cleanup progress finished")
 }
-
-//func Test() {
-//	if err := database.GlobalDatabase.Update(
-//		func(tx *nutsdb.Tx) error {
-//			bucket := "bucketForList"
-//			key := []byte("myList")
-//			for i := 0; i < 10; i++ {
-//				val := []byte("val" + strconv.Itoa(i))
-//				tx.LPush(bucket, key, val)
-//			}
-//			return nil
-//		}); err != nil {
-//		log.Fatal(err)
-//	}
-//
-//	if err := database.GlobalDatabase.View(
-//		func(tx *nutsdb.Tx) error {
-//			bucket := "bucketForList"
-//			key := []byte("myList")
-//			if items, err := tx.LRange(bucket, key, 0, -2); err != nil {
-//				return err
-//			} else {
-//				//fmt.Println(items)
-//				for _, item := range items {
-//					fmt.Println(string(item))
-//				}
-//			}
-//			return nil
-//		}); err != nil {
-//		log.Fatal(err)
-//	}
-//}
-
-//func DiscussionQuery(topic string, start int, count int) ([]types.Discussion, error) {
-//	var discussions []types.Discussion
-//	err := database.GlobalDatabase.View(
-//		func(tx *nutsdb.Tx) error {
-//			items, err := tx.LRange("discussion", []byte(topic), start, count)
-//			if err != nil {
-//				return err
-//			}
-//			for _, item := range items {
-//				var discussion types.Discussion
-//				err := jsoniter.Unmarshal(item, &discussion)
-//				if err != nil {
-//					return err
-//				}
-//				discussions = append(discussions, discussion)
-//			}
-//			return nil
-//		})
-//	if err != nil {
-//		return nil, err
-//	}
-//	return discussions, nil
-//}

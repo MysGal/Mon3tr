@@ -10,6 +10,7 @@ import (
 var discussionBucket = "discussion"
 var didBucket = "did"
 
+// DiscussionCreate
 // Handler确保Topic、Title、Creator存在，Did在此生成
 // 利用prefix完成release和discussion区分
 func DiscussionCreate(discussion types.Discussion) (string, error) {

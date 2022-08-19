@@ -9,6 +9,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type returnStruct struct {
@@ -27,37 +28,72 @@ type returnStruct struct {
 }
 
 func SearchHandler(ctx *fiber.Ctx) error {
-	searchType := ctx.Params("type")
-
-	keyWord, err := url.PathUnescape(ctx.Params("keyword"))
-
-	if err != nil || searchType == ":type" || searchType == "" || keyWord == "" || keyWord == ":keyword" {
+	rawQuery := ctx.Params("query")
+	if rawQuery == ":query" {
 		SendMessage(ctx, 403, "broken path")
 		return nil
 	}
-
+	rawQuery, err := url.PathUnescape(rawQuery)
+	if err != nil {
+		SendMessage(ctx, 403, "broken path")
+		return nil
+	}
 	from, err := ctx.ParamsInt("from")
-
 	if err != nil {
 		SendMessage(ctx, 403, "broken path")
 		return nil
 	}
 
+	// 处理query语法
+	// 检查是否有语法，没有的话直接按照全局搜索处理
+	var query string
+	queryTypes := []string{"discussion", "topic"}
+	querySlice := strings.Split(rawQuery, " ")
+	if len(querySlice) == 1 {
+		query = rawQuery
+	} else {
+		queryGalGame := false
+		for _, str := range querySlice {
+			// 检查是否为类型限制语法
+			if strings.HasPrefix(str, "type:") {
+				// 比较类型是否为现有类型
+				switch str[5:] {
+				case "galgame":
+					queryTypes = []string{"topic"}
+					query += " +data.type:galgame"
+					queryGalGame = true
+				default:
+					queryTypes = []string{"discussion", "topic"}
+				}
+				continue
+			}
+
+			// 检查galgame相关要求
+			if queryGalGame {
+				if strings.HasPrefix(str, "author:") {
+					query += " +data.related_data.galgame_author:" + str[7:]
+					continue
+				}
+				if strings.HasPrefix(str, "publisher:") {
+					query += " +data.related_data.galgame_publisher:" + str[10:]
+					continue
+				}
+			}
+
+			query += " " + str
+		}
+	}
+
+	utils.GlobalLogger.Info(query)
+	utils.GlobalLogger.Info(queryTypes)
+
 	var returnData returnStruct
 
-	switch searchType {
-	case "global":
-		// 全局搜索，分主题和帖子分别搜索
-
-		queryTypes := []string{"discussion", "topic"}
-		returnDataQueried, err := queryBySection(queryTypes, keyWord, from)
-		returnData = returnDataQueried
-		if err != nil {
-			SendMessage(ctx, 500, "server error")
-			return nil
-		}
-	default:
-		SendMessage(ctx, 403, "unknow search type")
+	// 全局搜索，分主题和帖子分别搜索
+	returnDataQueried, err := queryBySection(query, queryTypes, from)
+	returnData = returnDataQueried
+	if err != nil {
+		SendMessage(ctx, 500, "server error")
 		return nil
 	}
 
@@ -72,7 +108,7 @@ func SearchHandler(ctx *fiber.Ctx) error {
 	return nil
 }
 
-func queryBySection(queryTypes []string, keyWord string, from int) (returnStruct, error) {
+func queryBySection(query string, queryTypes []string, from int) (returnStruct, error) {
 	returnData := returnStruct{
 		Code:    200,
 		Message: "success",
@@ -95,7 +131,7 @@ func queryBySection(queryTypes []string, keyWord string, from int) (returnStruct
 	}
 
 	for _, v := range queryTypes {
-		query := keyWord + " +type:" + v
+		query := query + " +type:" + v
 
 		queryReq := bleve.NewSearchRequest(bleve.NewQueryStringQuery(query))
 		queryReq.Size = 10

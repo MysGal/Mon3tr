@@ -18,7 +18,7 @@ func DiscussionCreateHandler(ctx *fiber.Ctx) error {
 
 	// 数据校验
 	// TODO: 根据Session校验用户
-	if discussion.Creator == 0 || discussion.Topic == "" || discussion.Title == "" || discussion.Floor == nil {
+	if discussion.Creator == 0 || discussion.Topic == "" || discussion.Title == "" || discussion.Floor == nil || discussion.Floor.Creator != discussion.Creator {
 		SendMessage(ctx, 403, "broken body")
 		return nil
 	}

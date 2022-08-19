@@ -18,12 +18,23 @@ func TopicCreateHandler(ctx *fiber.Ctx) error {
 		return nil
 	}
 	// 数据校验
-	// TODO: 校验topic格式，不含有空格，全小写，空格用-替代
+	// 校验topic格式，不含有空格，全小写，空格用-替代
 	legal, _ := regexp.MatchString("^[-a-z0-9]+$", topic.Topic)
-	if topic.Name == "" || topic.Tags == nil || !legal {
+	if topic.Type == "" || topic.Name == "" || topic.Tags == nil || !legal {
 		SendMessage(ctx, 403, "missing topic field")
 		return nil
 	}
+	// 根据类型校验
+	switch topic.Type {
+	case "galgame":
+		if topic.RelatedData.GalGameAuthor == nil || topic.RelatedData.GalGamePublisher == nil {
+			SendMessage(ctx, 403, "broken body")
+		}
+	default:
+		SendMessage(ctx, 403, "unknown topic type")
+		return nil
+	}
+
 	// 数据写入
 	err = database.TopicCreate(topic)
 	if err != nil {
